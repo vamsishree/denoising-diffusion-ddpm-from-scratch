@@ -239,8 +239,40 @@ def ddpm_train_step(
 
     return new_params, float(loss.item())
 
-# Step 14 - train_ddpm (not yet solved)
-# TODO: implement
+# Step 14 - train_ddpm
+import torch
+
+def train_ddpm(
+    dataset,
+    params: dict,
+    schedule: dict,
+    num_steps: int = 50,
+    batch_size: int = 16,
+    lr: float = 1e-2,
+    seed: int = 0,
+) -> tuple[dict, list]:
+
+    history = []
+    n = dataset.shape[0]
+
+    for step in range(num_steps):
+        # Seed and sample a minibatch
+        torch.manual_seed(seed + step)
+        idx = torch.randint(0, n, (batch_size,))
+        x0 = dataset[idx]
+
+        # One DDPM training step
+        params, loss = ddpm_train_step(
+            params,
+            x0,
+            schedule,
+            lr=lr,
+            seed=seed + step,
+        )
+
+        history.append(loss)
+
+    return params, history
 
 # Step 15 - predict_x0_from_eps (not yet solved)
 # TODO: implement
