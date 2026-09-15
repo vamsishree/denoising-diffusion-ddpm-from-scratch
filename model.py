@@ -274,8 +274,18 @@ def train_ddpm(
 
     return params, history
 
-# Step 15 - predict_x0_from_eps (not yet solved)
-# TODO: implement
+# Step 15 - predict_x0_from_eps
+import torch
+import torch.nn.functional as F
+
+def predict_x0_from_eps(x_t, t, eps, alphas_cumprod):
+    bar_alpha_t = extract_into_batch(alphas_cumprod, t, x_t)
+
+    sqrt_bar_alpha = torch.sqrt(bar_alpha_t)
+    sqrt_one_minus_bar_alpha = torch.sqrt(1.0 - bar_alpha_t)
+
+    x0_hat = (x_t - sqrt_one_minus_bar_alpha * eps) / sqrt_bar_alpha
+    return x0_hat
 
 # Step 16 - ddpm_p_mean_variance (not yet solved)
 # TODO: implement
