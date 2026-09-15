@@ -287,8 +287,41 @@ def predict_x0_from_eps(x_t, t, eps, alphas_cumprod):
     x0_hat = (x_t - sqrt_one_minus_bar_alpha * eps) / sqrt_bar_alpha
     return x0_hat
 
-# Step 16 - ddpm_p_mean_variance (not yet solved)
-# TODO: implement
+# Step 16 - ddpm_p_mean_variance
+import torch
+
+def ddpm_p_mean_variance(x_t, t, eps, schedule: dict):
+    alphas = schedule["alphas"]
+    alphas_cumprod = schedule["alphas_cumprod"]
+    betas = schedule["betas"]
+
+    # Predict x0 and clamp
+    x0_hat = predict_x0_from_eps(x_t, t, eps, alphas_cumprod)
+    x0_hat = x0_hat.clamp(-1.0, 1.0)
+
+    # Extract schedule values for current timestep
+    alpha_t = extract_into_batch(alphas, t, x_t)
+    beta_t = extract_into_batch(betas, t, x_t)
+    bar_alpha_t = extract_into_batch(alphas_cumprod, t, x_t)
+
+    # Compute bar_alpha_{t-1}, with bar_alpha_{-1} = 1
+    bar_alpha_prev = torch.ones_like(bar_alpha_t)
+    mask = t > 0
+    if mask.any():
+        bar_alpha_prev[mask] = extract_into_batch(
+            alphas_cumprod,
+            t[mask] - 1,
+            x_t[mask],
+        )
+
+    # Posterior mean coefficients
+    coef1 = torch.sqrt(bar_alpha_prev) * beta_t / (1.0 - bar_alpha_t)
+    coef2 = torch.sqrt(alpha_t) * (1.0 - bar_alpha_prev) / (1.0 - bar_alpha_t)
+
+    mean = coef1 * x0_hat + coef2 * x_t
+    variance = beta_t
+
+    return mean, variance, x0_hat
 
 # Step 17 - ddpm_p_sample (not yet solved)
 # TODO: implement
