@@ -67,8 +67,14 @@ import torch.nn.functional as F
 def noise_prediction_loss(noise_pred, noise):
     return F.mse_loss(noise_pred, noise)
 
-# Step 8 - diffusion_training_loss (not yet solved)
-# TODO: implement
+# Step 8 - diffusion_training_loss
+import torch
+import torch.nn.functional as F
+
+def diffusion_training_loss(model, x0, t, noise, alphas_cumprod):
+    x_t = q_sample(x0, t, noise, alphas_cumprod)
+    noise_pred = model(x_t, t)
+    return noise_prediction_loss(noise_pred, noise)
 
 # Step 9 - timestep_embedding (not yet solved)
 # TODO: implement
