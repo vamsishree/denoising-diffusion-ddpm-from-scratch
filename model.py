@@ -366,8 +366,25 @@ def ddpm_sample_loop(params: dict, schedule: dict, shape: tuple, seed: int = 0):
 
     return x
 
-# Step 19 - sample_quality_mse (not yet solved)
-# TODO: implement
+# Step 19 - sample_quality_mse
+import torch
+
+def sample_quality_mse(samples, dataset) -> float:
+    # Flatten images
+    samples_flat = samples.view(samples.shape[0], -1)      # (N, D)
+    dataset_flat = dataset.view(dataset.shape[0], -1)      # (M, D)
+
+    # Pairwise squared differences: (N, M, D)
+    diff = samples_flat[:, None, :] - dataset_flat[None, :, :]
+
+    # Pairwise MSE: (N, M)
+    mse = (diff ** 2).mean(dim=-1)
+
+    # Nearest dataset image for each sample
+    min_mse = mse.min(dim=1).values
+
+    # Mean over all samples
+    return float(min_mse.mean().item())
 
 # Step 20 - ddpm_experiment (not yet solved)
 # TODO: implement
