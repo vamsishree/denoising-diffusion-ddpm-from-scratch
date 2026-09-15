@@ -96,8 +96,32 @@ def timestep_embedding(t, dim: int):
     emb = torch.cat([torch.sin(args), torch.cos(args)], dim=1)
     return emb
 
-# Step 10 - init_tiny_unet (not yet solved)
-# TODO: implement
+# Step 10 - init_tiny_unet
+import torch
+import torch.nn.functional as F
+
+def init_tiny_unet(in_ch: int = 1, hidden: int = 16, time_dim: int = 16, seed: int = 0) -> dict:
+    torch.manual_seed(seed)
+
+    def weight(shape):
+        return (0.02 * torch.randn(*shape)).requires_grad_()
+
+    def bias(size):
+        return torch.zeros(size, requires_grad=True)
+
+    return {
+        "conv_in_w": weight((hidden, in_ch, 3, 3)),
+        "conv_in_b": bias(hidden),
+
+        "time_mlp_w": weight((hidden, time_dim)),
+        "time_mlp_b": bias(hidden),
+
+        "conv_mid_w": weight((hidden, hidden, 3, 3)),
+        "conv_mid_b": bias(hidden),
+
+        "conv_out_w": weight((in_ch, hidden, 3, 3)),
+        "conv_out_b": bias(in_ch),
+    }
 
 # Step 11 - tiny_unet_forward (not yet solved)
 # TODO: implement
