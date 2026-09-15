@@ -1,7 +1,5 @@
 """
 Denoising Diffusion (DDPM) from Scratch
-
-Assembled from your step-by-step solutions.
 """
 
 import numpy as np
